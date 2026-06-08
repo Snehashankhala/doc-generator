@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Documentation Generator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; padding: 2rem; }
+        h1 { text-align: center; margin-bottom: 2rem; color: #58a6ff; }
+        .container { max-width: 900px; margin: 0 auto; }
+        select, textarea {
+            width: 100%; padding: 10px; margin-bottom: 1rem;
+            background: #161b22; color: #e6edf3;
+            border: 1px solid #30363d; border-radius: 8px; font-size: 14px;
+        }
+        textarea { min-height: 200px; font-family: monospace; resize: vertical; }
+        button {
+            width: 100%; padding: 12px;
+            background: #238636; color: white;
+            border: none; border-radius: 8px;
+            font-size: 16px; cursor: pointer; margin-bottom: 1rem;
+        }
+        button:hover { background: #2ea043; }
+        button:disabled { background: #444; cursor: not-allowed; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 1rem; }
+        .tab {
+            padding: 8px 16px; border-radius: 8px; cursor: pointer;
+            background: #161b22; border: 1px solid #30363d; color: #e6edf3;
+        }
+        .tab.active { background: #238636; border-color: #238636; }
+        .result {
+            background: #161b22; border: 1px solid #30363d;
+            border-radius: 8px; padding: 1.5rem;
+            display: none; white-space: pre-wrap;
+            line-height: 1.6; font-family: monospace; font-size: 13px;
+        }
+        .loading { text-align: center; color: #58a6ff; padding: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 AI Documentation Generator</h1>
+
+        <select id="language">
+            <option value="Java">Java</option>
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="C++">C++</option>
+        </select>
+
+        <textarea id="code" placeholder="// Paste your code here..."></textarea>
+
+        <button id="btn" onclick="generateDocs()">📄 Generate Documentation</button>
+
+        <div class="tabs" id="tabs" style="display:none">
+            <button class="tab active" onclick="showTab('readme')">📋 README</button>
+            <button class="tab" onclick="showTab('comments')">💬 Comments</button>
+            <button class="tab" onclick="showTab('apidocs')">🔗 API Docs</button>
+        </div>
+
+        <div id="readme" class="result"></div>
+        <div id="comments" class="result"></div>
+        <div id="apidocs" class="result"></div>
+    </div>
+
+    <script>
+        let currentData = null;
+
+        async function generateDocs() {
+            const code = document.getElementById('code').value.trim();
+            const language = document.getElementById('language').value;
+            const btn = document.getElementById('btn');
+
+            if (!code) { alert('Please paste some code first!'); return; }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+
+            document.getElementById('readme').style.display = 'block';
+            document.getElementById('readme').innerHTML = '<div class="loading">Generating documentation...</div>';
+            document.getElementById('comments').style.display = 'none';
+            document.getElementById('apidocs').style.display = 'none';
+            document.getElementById('tabs').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, language })
+                });
+
+                currentData = await response.json();
+
+                document.getElementById('readme').textContent = currentData.readme;
+                document.getElementById('comments').textContent = currentData.comments;
+                document.getElementById('apidocs').textContent = currentData.apidocs;
+                document.getElementById('tabs').style.display = 'flex';
+
+                showTab('readme');
+
+            } catch (error) {
+                document.getElementById('readme').textContent = 'Error: ' + error.message;
+            }
+
+            btn.disabled = false;
+            btn.textContent = '📄 Generate Documentation';
+        }
+
+       function showTab(tab, el) {
+    document.querySelectorAll('.result').forEach(r => r.style.display = 'none');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab).style.display = 'block';
+    if(el) el.classList.add('active');
+        }
+    </script>
+</body>
+</html>

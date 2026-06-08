@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: doc-generator
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/doc_generator}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:Shankhala123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+server:
+  port: 8084
+
+gemini:
+  api:
+    key: ${API_KEY:default}
